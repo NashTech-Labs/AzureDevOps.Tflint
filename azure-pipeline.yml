@@ -1,0 +1,38 @@
+parameters:
+- name: 'ModuleFolder'
+  type: string    
+  default: '$(System.DefaultWorkingDirectory)'
+
+steps:
+
+- script:
+    curl https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+    tflint -v
+  displayName: "Install Linux TFLint"
+  name: "InstallTFLintonLinux"
+  condition: eq(variables['Agent.OS'], 'Linux')
+
+- script: |
+   
+    echo "---------------------------------------Downloading-----------------------------------------------"
+    curl https://github.com/terraform-linters/tflint/releases/download/v0.42.0/tflint_windows_386.zip -o ${{ parameters.ModuleFolder}}/tflint.zip
+    echo "-----------------------------UnZIPPING--------------------------------------------------------"
+    gzip -dkc ${{ parameters.ModuleFolder}}/tflint.zip > ${{ parameters.ModuleFolder}}/tflint.exe
+    echo "--------------------------------------Removing not required file------------------------------------"
+    rm -f ${{ parameters.ModuleFolder}}/tflint.zip
+    tflint.exe -v 
+  displayName: "Install Windows TFLint"
+  name: "InstallTFLintonWindows"
+  condition: eq(variables['Agent.OS'], 'Windows_NT')
+
+- script:
+    tflint --chdir=${{ parameters.ModuleFolder}}
+  displayName: 'Run Linux TFLint to Lint terraform code'
+  name: 'RunTFLintonLinux'
+  condition: eq(variables['Agent.OS'], 'Linux') 
+  
+- powershell: 
+   ${{ parameters.ModuleFolder }}/tflint.exe -v   
+  displayName: 'Run Windows TFLint to Lint terraform code'
+  name: 'RunTFLintonWindows'
+  condition: eq(variables['Agent.OS'], 'Windows_NT')
