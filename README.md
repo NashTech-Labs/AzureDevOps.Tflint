@@ -1,4 +1,4 @@
-# ADO Docker Template
+# ADO TFLint Template
 
 This template uses the open source tflint available in github to lint test terraform modules
 
